@@ -1,4 +1,4 @@
- import re
+import re
 from datetime import datetime, date
 
 def _msg(gender, female_text, male_text):
