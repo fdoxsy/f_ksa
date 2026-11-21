@@ -6,8 +6,11 @@ build-backend = "setuptools.build_meta"
 name = "f_ksa"
 version = "0.1.0"
 authors = [
-  { name="Fida", email="fidaald4@gmail.com" },
+  { name="Fida", email="your_email@example.com" },
 ]
 description = "مكتبة عربية ذكية لتنظيف البيانات ومعالجة النصوص والأرقام السعودية"
 readme = "README.md"
 requires-python = ">=3.7"
+
+[tool.setuptools.packages.find]
+where = ["."]
