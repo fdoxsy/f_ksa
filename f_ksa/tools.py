@@ -1,9 +1,9 @@
-import re
+ import re
 from datetime import datetime, date
 
 def _msg(gender, female_text, male_text):
     """دالة داخلية لتخصيص الخطاب بين البنت والولد"""
-    return female_text if str(gender).lower() in ['f', 'female', 'بنت', 'انثى'] else male_text
+    return female_text if str(gender).lower() in list(('f', 'female', 'بنت', 'انثى')) else male_text
 
 def normalize_numbers(text):
     """1. تحويل الأرقام العربية/الهندية (٠١٢٣) إلى إنجليزية (0123)"""
@@ -64,7 +64,7 @@ def check_iban(iban, gender="f"):
 def check_saudi_id(id_number, gender="f"):
     """5. التحقق الرياضي الرسمي من صحة رقم الهوية الوطنية أو الإقامة"""
     id_str = normalize_numbers(id_number).strip()
-    if not id_str.isdigit() or len(id_str) != 10 or id_str not in ['1', '2']:
+    if not id_str.isdigit() or len(id_str) != 10 or id_str not in ('1', '2'):
         return _msg(
             gender,
             "❌ الرقم خطا يا مزه، تاكدي انه 10 ارقام ويبدا بـ 1 او 2!",
@@ -145,13 +145,13 @@ def tafkeet(number, gender="f"):
             return _msg(gender, "❌ الرقم لازم يكون بين 0 و 999,999 يا مزه!", "❌ الرقم لازم يكون بين 0 و 999,999 يا مزه!")
         if num == 0:
             return "فقط صفر ريال سعودي لا غير"
-        ones = ["", "واحد", "اثنان", "ثلاثة", "أربعة", "خمسة", "ستة", "سبعة", "ثمانية", "تسعة", "عشرة",
-                "أحد عشر", "اثنا عشر", "ثلاثة عشر", "أربعة عشر", "خمسة عشر", "ستة عشر", "سبعة عشر", "ثمانية عشر", "تسعة عشر"]
-        tens = ["", "", "عشرون", "ثلاثون", "أربعون", "خمسون", "ستون", "سبعون", "ثمانون", "تسعون"]
-        hundreds = ["", "مائة", "مائتان", "ثلاثمائة", "أربعمائة", "خمسمائة", "ستمائة", "سبعمائة", "ثمانمائة", "تسعمائة"]
+        ones = ("", "واحد", "اثنان", "ثلاثة", "أربعة", "خمسة", "ستة", "سبعة", "ثمانية", "تسعة", "عشرة",
+                "أحد عشر", "اثنا عشر", "ثلاثة عشر", "أربعة عشر", "خمسة عشر", "ستة عشر", "سبعة عشر", "ثمانية عشر", "تسعة عشر")
+        tens = ("", "", "عشرون", "ثلاثون", "أربعون", "خمسون", "ستون", "سبعون", "ثمانون", "تسعون")
+        hundreds = ("", "مائة", "مائتان", "ثلاثمائة", "أربعمائة", "خمسمائة", "ستمائة", "سبعمائة", "ثمانمائة", "تسعمائة")
 
         def _convert_under_1000(n):
-            parts =
+            parts = list()
             if n >= 100:
                 parts.append(hundreds[n // 100])
                 n %= 100
@@ -166,7 +166,7 @@ def tafkeet(number, gender="f"):
 
         thousands = num // 1000
         rest = num % 1000
-        result_parts =
+        result_parts = list()
         if thousands > 0:
             if thousands == 1: result_parts.append("ألف")
             elif thousands == 2: result_parts.append("ألفان")
@@ -189,8 +189,8 @@ def arabic_date(date_str, gender="f"):
     """11. تحويل التاريخ (YYYY-MM-DD) إلى صيغة عربية كاملة مع اسم اليوم والشهر"""
     try:
         dt = datetime.strptime(normalize_numbers(date_str).strip(), "%Y-%m-%d")
-        days = ["الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت", "الأحد"]
-        months = ["", "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"]
+        days = ("الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت", "الأحد")
+        months = ("", "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر")
         return f"📅 {days[dt.weekday()]}، {dt.day} {months[dt.month]} {dt.year}"
     except ValueError:
         return _msg(gender, "❌ صيغة التاريخ خطا يا مزه، اكتبيها كذا: 2026-11-21", "❌ صيغة التاريخ خطا يا مزه، اكتبها كذا: 2026-11-21")
@@ -229,7 +229,7 @@ def calc_age(birth_date, gender="f"):
 def check_password(password, gender="f"):
     """14. فحص قوة كلمة المرور وإعطاء نصائح لتقويتها"""
     pwd = str(password)
-    tips =
+    tips = list()
     if len(pwd) < 8:
         tips.append("اجعليها 8 خانات على الأقل" if gender == "f" else "اجعلها 8 خانات على الأقل")
     if not re.search(r'[A-Z]', pwd):
