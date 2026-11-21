@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "f_ksa"
+version = "0.1.0"
+authors = [
+  { name="Fida", email="fidaald4@gmail.com" },
+]
+description = "مكتبة عربية ذكية لتنظيف البيانات ومعالجة النصوص والأرقام السعودية"
+readme = "README.md"
+requires-python = ">=3.7"
