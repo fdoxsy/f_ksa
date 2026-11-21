@@ -14,7 +14,7 @@
     pip install f_ksa
 
 ### أو التثبيت المباشر من GitHub:
-    pip install git+https://github.com
+    pip install git+https://github.com/fdoxsy/f_ksa.git
 
 ---
 
