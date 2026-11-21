@@ -1,7 +1,11 @@
 import re
 
-def fix_phone(phone):
-    """تنظيف وتوحيد رقم الجوال السعودي إلى الصيغة الدولية (9665xxxxxxxx)"""
+def _msg(gender, female_text, male_text):
+    """دالة داخلية لتخصيص الخطاب بين البنت والولد"""
+    return female_text if str(gender).lower() in ['f', 'female', 'بنت', 'انثى'] else male_text
+
+def fix_phone(phone, gender="f"):
+    """تنظيف وتوحيد رقم الجوال السعودي إلى الصيغة الدولية"""
     digits = re.sub(r'\D', '', str(phone))
     if digits.startswith('9665') and len(digits) == 12:
         return digits
@@ -10,12 +14,20 @@ def fix_phone(phone):
     elif digits.startswith('5') and len(digits) == 9:
         return '966' + digits
     else:
-        return "❌ تنبيه: رقم الجوال غير صحيح، تأكد أن الرقم يبدأ بـ 05 ويتكون من 10 أرقام."
+        return _msg(
+            gender,
+            "❌ الرقم خطا يا مزه، تاكدي انه يبدا بـ 05 ويتكون من 10 ارقام!",
+            "❌ الرقم خطا يا مزه، تاكد انه يبدا بـ 05 ويتكون من 10 ارقام!"
+        )
 
-def clean_text(text):
-    """تنظيف النص العربي من التشكيل والرموز وتوحيد الحروف بضغطة زر"""
+def clean_text(text, gender="f"):
+    """تنظيف النص العربي من التشكيل والرموز وتوحيد الحروف"""
     if not text or str(text).strip() == "":
-        return "❌ تنبيه: النص المدخل فارغ."
+        return _msg(
+            gender,
+            "❌ النص فاضي يا مزه، اكتبي شي عشان انظفه لك!",
+            "❌ النص فاضي يا مزه، اكتب شي عشان انظفه لك!"
+        )
     text = str(text)
     text = re.sub(r'[\u064B-\u065F]', '', text)
     text = re.sub(r'[إأآا]', 'ا', text)
@@ -24,12 +36,16 @@ def clean_text(text):
     text = re.sub(r'[^\w\s\u0600-\u06FF]', '', text)
     return " ".join(text.split())
 
-def check_iban(iban):
+def check_iban(iban, gender="f"):
     """التحقق من صيغة الآيبان السعودي ومعرفة اسم البنك تلقائياً"""
     clean_iban = str(iban).replace(" ", "").upper()
     if not clean_iban.startswith("SA") or len(clean_iban) != 24:
-        return "❌ آيبان غير صحيح: يجب أن يبدأ بـ SA ويتكون من 24 خانة."
-
+        return _msg(
+            gender,
+            "❌ الايبان خطا يا مزه، تاكدي انه يبدا بـ SA ويتكون من 24 خانه!",
+            "❌ الايبان خطا يا مزه، تاكد انه يبدا بـ SA ويتكون من 24 خانه!"
+        )
+    
     banks = {
         "80": "مصرف الراجحي",
         "10": "البنك الأهلي السعودي (SNB)",
@@ -43,14 +59,18 @@ def check_iban(iban):
     }
     bank_code = clean_iban[4:6]
     bank_name = banks.get(bank_code, "بنك سعودي آخر")
-    return f"✅ آيبان صحيح - تابع لـ: {bank_name}"
+    return f"✅ ايبان صحيح يا مزه - تابع لـ: {bank_name}"
 
-def check_saudi_id(id_number):
+def check_saudi_id(id_number, gender="f"):
     """التحقق الرياضي الرسمي من صحة رقم الهوية الوطنية أو الإقامة"""
     id_str = str(id_number).strip()
     if not id_str.isdigit() or len(id_str) != 10 or id_str[0] not in ['1', '2']:
-        return "❌ رقم غير صحيح: يجب أن يتكون من 10 أرقام ويبدأ بـ 1 (هوية) أو 2 (إقامة)."
-
+        return _msg(
+            gender,
+            "❌ الرقم خطا يا مزه، تاكدي انه 10 ارقام ويبدا بـ 1 او 2!",
+            "❌ الرقم خطا يا مزه، تاكد انه 10 ارقام ويبدا بـ 1 او 2!"
+        )
+    
     total = 0
     for i in range(10):
         digit = int(id_str[i])
@@ -59,23 +79,27 @@ def check_saudi_id(id_number):
             total += doubled if doubled < 10 else (doubled // 10) + (doubled % 10)
         else:
             total += digit
-
+            
     if total % 10 == 0:
         id_type = "هوية وطنية سعودية" if id_str[0] == '1' else "إقامة نظامية"
-        return f"✅ رقم صحيح ({id_type})"
+        return f"✅ رقم صحيح يا مزه ({id_type})"
     else:
-        return "❌ رقم غير صحيح (فشل في التحقق الرقمي)."
+        return _msg(
+            gender,
+            "❌ الرقم خطا يا مزه، تاكدي من رقم الهوية او الاقامه!",
+            "❌ الرقم خطا يا مزه، تاكد من رقم الهوية او الاقامه!"
+        )
 
-def calc_vat(amount, include_vat=False):
-    """
-    حساب ضريبة القيمة المضافة السعودية (15%)
-    - إذا كان المبلغ بدون ضريبة: calc_vat(100)
-    - إذا كان المبلغ شاملاً للضريبة وتريد استخراجها: calc_vat(115, include_vat=True)
-    """
+def calc_vat(amount, include_vat=False, gender="f"):
+    """حساب ضريبة القيمة المضافة السعودية (15%)"""
     try:
         amount = float(amount)
         if amount < 0:
-            return "❌ تنبيه: المبلغ يجب أن يكون رقماً موجباً."
+            return _msg(
+                gender,
+                "❌ المبلغ خطا يا مزه، تاكدي انه رقم موجب!",
+                "❌ المبلغ خطا يا مزه، تاكد انه رقم موجب!"
+            )
         if include_vat:
             base = round(amount / 1.15, 2)
             vat = round(amount - base, 2)
@@ -85,10 +109,14 @@ def calc_vat(amount, include_vat=False):
             total = round(amount + vat, 2)
             return {"المبلغ_الأساسي": amount, "الضريبة_15%": vat, "الإجمالي_شامل_الضريبة": total}
     except ValueError:
-        return "❌ تنبيه: الرجاء إدخال رقم صحيح للمبلغ."
+        return _msg(
+            gender,
+            "❌ المبلغ خطا يا مزه، تاكدي انك كتبتي رقم صحيح!",
+            "❌ المبلغ خطا يا مزه، تاكد انك كتبت رقم صحيح!"
+        )
 
-def get_region(city):
-    """معرفة المنطقة الإدارية في السعودية من اسم المدينة (حتى مع اختلاف الكتابة)"""
+def get_region(city, gender="f"):
+    """معرفة المنطقة الإدارية في السعودية من اسم المدينة"""
     clean_city = clean_text(city).replace("ال", "")
     regions = {
         "رياض": "منطقة الرياض", "خرج": "منطقة الرياض", "درعيه": "منطقة الرياض", "مجمعه": "منطقة الرياض",
@@ -108,4 +136,8 @@ def get_region(city):
     for key, region in regions.items():
         if key in clean_city:
             return f"📍 {region}"
-    return "❓ المدينة غير مسجلة في القائمة السريعة، تأكد من كتابة اسم المدينة بشكل صحيح."
+    return _msg(
+        gender,
+        "❓ المدينه مو مسجله يا مزه، تاكدي من كتابة اسمها صح!",
+        "❓ المدينه مو مسجله يا مزه، تاكد من كتابة اسمها صح!"
+    )
