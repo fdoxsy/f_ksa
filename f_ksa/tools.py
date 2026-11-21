@@ -1,21 +1,19 @@
 import re
-from datetime import datetime
+from datetime import datetime, date
 
 def _msg(gender, female_text, male_text):
     """دالة داخلية لتخصيص الخطاب بين البنت والولد"""
     return female_text if str(gender).lower() in ['f', 'female', 'بنت', 'انثى'] else male_text
 
 def normalize_numbers(text):
-    """تحويل الأرقام العربية/الهندية (٠١٢٣) إلى إنجليزية (0123)"""
+    """1. تحويل الأرقام العربية/الهندية (٠١٢٣) إلى إنجليزية (0123)"""
     arabic_nums = "٠١٢٣٤٥٦٧٨٩"
     english_nums = "0123456789"
-    trans_table = str.maketrans(arabic_nums, english_nums)
-    return str(text).translate(trans_table)
+    return str(text).translate(str.maketrans(arabic_nums, english_nums))
 
 def fix_phone(phone, gender="f"):
-    """تنظيف وتوحيد رقم الجوال السعودي إلى الصيغة الدولية"""
-    phone = normalize_numbers(phone)
-    digits = re.sub(r'\D', '', str(phone))
+    """2. تنظيف وتوحيد رقم الجوال السعودي إلى الصيغة الدولية (9665xxxxxxxx)"""
+    digits = re.sub(r'\D', '', normalize_numbers(phone))
     if digits.startswith('9665') and len(digits) == 12:
         return digits
     elif digits.startswith('05') and len(digits) == 10:
@@ -30,7 +28,7 @@ def fix_phone(phone, gender="f"):
         )
 
 def clean_text(text, gender="f"):
-    """تنظيف النص العربي من التشكيل والرموز وتوحيد الحروف"""
+    """3. تنظيف النص العربي من التشكيل والرموز وتوحيد الحروف"""
     if not text or str(text).strip() == "":
         return _msg(
             gender,
@@ -46,7 +44,7 @@ def clean_text(text, gender="f"):
     return " ".join(text.split())
 
 def check_iban(iban, gender="f"):
-    """التحقق من صيغة الآيبان السعودي ومعرفة اسم البنك تلقائياً"""
+    """4. التحقق من صيغة الآيبان السعودي ومعرفة اسم البنك تلقائياً"""
     clean_iban = normalize_numbers(iban).replace(" ", "").upper()
     if not clean_iban.startswith("SA") or len(clean_iban) != 24:
         return _msg(
@@ -64,7 +62,7 @@ def check_iban(iban, gender="f"):
     return f"✅ ايبان صحيح يا مزه - تابع لـ: {bank_name}"
 
 def check_saudi_id(id_number, gender="f"):
-    """التحقق الرياضي الرسمي من صحة رقم الهوية الوطنية أو الإقامة"""
+    """5. التحقق الرياضي الرسمي من صحة رقم الهوية الوطنية أو الإقامة"""
     id_str = normalize_numbers(id_number).strip()
     if not id_str.isdigit() or len(id_str) != 10 or id_str not in ['1', '2']:
         return _msg(
@@ -91,7 +89,7 @@ def check_saudi_id(id_number, gender="f"):
         )
 
 def calc_vat(amount, include_vat=False, gender="f"):
-    """حساب ضريبة القيمة المضافة السعودية (15%)"""
+    """6. حساب ضريبة القيمة المضافة السعودية (15%)"""
     try:
         amount = float(normalize_numbers(amount))
         if amount < 0:
@@ -108,7 +106,7 @@ def calc_vat(amount, include_vat=False, gender="f"):
         return _msg(gender, "❌ المبلغ خطا يا مزه، تاكدي انك كتبتي رقم صحيح!", "❌ المبلغ خطا يا مزه، تاكد انك كتبت رقم صحيح!")
 
 def get_region(city, gender="f"):
-    """معرفة المنطقة الإدارية في السعودية من اسم المدينة"""
+    """7. معرفة المنطقة الإدارية في السعودية من اسم المدينة"""
     clean_city = clean_text(city).replace("ال", "")
     regions = {
         "رياض": "منطقة الرياض", "خرج": "منطقة الرياض", "درعيه": "منطقة الرياض", "مجمعه": "منطقة الرياض",
@@ -128,7 +126,7 @@ def get_region(city, gender="f"):
     return _msg(gender, "❓ المدينه مو مسجله يا مزه، تاكدي من كتابة اسمها صح!", "❓ المدينه مو مسجله يا مزه، تاكد من كتابة اسمها صح!")
 
 def calc_zakat(amount, gender="f"):
-    """حساب زكاة المال الشرعية (ربع العشر 2.5%)"""
+    """8. حساب زكاة المال الشرعية (ربع العشر 2.5%)"""
     try:
         amount = float(normalize_numbers(amount))
         if amount < 0:
@@ -140,7 +138,7 @@ def calc_zakat(amount, gender="f"):
         return _msg(gender, "❌ المبلغ خطا يا مزه، تاكدي انك كتبتي رقم صحيح!", "❌ المبلغ خطا يا مزه، تاكد انك كتبت رقم صحيح!")
 
 def tafkeet(number, gender="f"):
-    """تحويل الأرقام إلى كتابة عربية رسمية للفواتير (تفقيط بالريال السعودي)"""
+    """9. تحويل الأرقام إلى كتابة عربية رسمية للفواتير (تفقيط بالريال السعودي)"""
     try:
         num = int(float(normalize_numbers(number)))
         if num < 0 or num > 999999:
@@ -153,7 +151,7 @@ def tafkeet(number, gender="f"):
         hundreds = ["", "مائة", "مائتان", "ثلاثمائة", "أربعمائة", "خمسمائة", "ستمائة", "سبعمائة", "ثمانمائة", "تسعمائة"]
 
         def _convert_under_1000(n):
-            parts = []
+            parts =
             if n >= 100:
                 parts.append(hundreds[n // 100])
                 n %= 100
@@ -163,15 +161,12 @@ def tafkeet(number, gender="f"):
                 else:
                     u = n % 10
                     t = n // 10
-                    if u > 0:
-                        parts.append(f"{ones[u]} و{tens[t]}")
-                    else:
-                        parts.append(tens[t])
+                    parts.append(f"{ones[u]} و{tens[t]}" if u > 0 else tens[t])
             return " و".join(parts)
 
         thousands = num // 1000
         rest = num % 1000
-        result_parts = []
+        result_parts =
         if thousands > 0:
             if thousands == 1: result_parts.append("ألف")
             elif thousands == 2: result_parts.append("ألفان")
@@ -184,14 +179,14 @@ def tafkeet(number, gender="f"):
         return _msg(gender, "❌ الرقم خطا يا مزه، اكتبي رقم صحيح!", "❌ الرقم خطا يا مزه، اكتب رقم صحيح!")
 
 def extract_data(text):
-    """استخراج أرقام الجوال السعودية والآيبان من أي نص فوضوي تلقائياً"""
+    """10. استخراج أرقام الجوال السعودية والآيبان من أي نص فوضوي تلقائياً"""
     clean = normalize_numbers(text)
     phones = re.findall(r'(?:\+?9665|05)\d{8}', clean)
     ibans = re.findall(r'SA\d{22}', clean.replace(" ", "").upper())
     return {"أرقام_الجوال": list(set(phones)), "أرقام_الآيبان": list(set(ibans))}
 
 def arabic_date(date_str, gender="f"):
-    """تحويل التاريخ (YYYY-MM-DD) إلى صيغة عربية كاملة مع اسم اليوم والشهر"""
+    """11. تحويل التاريخ (YYYY-MM-DD) إلى صيغة عربية كاملة مع اسم اليوم والشهر"""
     try:
         dt = datetime.strptime(normalize_numbers(date_str).strip(), "%Y-%m-%d")
         days = ["الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت", "الأحد"]
@@ -199,3 +194,59 @@ def arabic_date(date_str, gender="f"):
         return f"📅 {days[dt.weekday()]}، {dt.day} {months[dt.month]} {dt.year}"
     except ValueError:
         return _msg(gender, "❌ صيغة التاريخ خطا يا مزه، اكتبيها كذا: 2026-11-21", "❌ صيغة التاريخ خطا يا مزه، اكتبها كذا: 2026-11-21")
+
+def convert_sar(amount, to_currency="USD", reverse=False, gender="f"):
+    """12. تحويل العملات من الريال السعودي (SAR) إلى العملات الرئيسية (USD, EUR, AED, KWD, GBP) والعكس"""
+    rates = {"USD": 3.75, "EUR": 4.08, "AED": 1.02, "KWD": 12.20, "GBP": 4.78}
+    curr = str(to_currency).upper().strip()
+    if curr not in rates:
+        return _msg(gender, "❌ العمله مو مدعومه يا مزه، اختاري: USD, EUR, AED, KWD, GBP", "❌ العمله مو مدعومه يا مزه، اختر: USD, EUR, AED, KWD, GBP")
+    try:
+        val = float(normalize_numbers(amount))
+        if reverse:
+            res = round(val * rates[curr], 2)
+            return f"💱 {val} {curr} = {res} ريال سعودي (SAR)"
+        else:
+            res = round(val / rates[curr], 2)
+            return f"💱 {val} ريال سعودي (SAR) = {res} {curr}"
+    except ValueError:
+        return _msg(gender, "❌ المبلغ خطا يا مزه، اكتبي رقم صحيح!", "❌ المبلغ خطا يا مزه، اكتب رقم صحيح!")
+
+def calc_age(birth_date, gender="f"):
+    """13. حساب العمر الدقيق بالسنوات والأشهر والأيام من تاريخ الميلاد (YYYY-MM-DD)"""
+    try:
+        bdate = datetime.strptime(normalize_numbers(birth_date).strip(), "%Y-%m-%d").date()
+        today = date.today()
+        if bdate > today:
+            return _msg(gender, "❌ تاريخ الميلاد بالمستقبل يا مزه، تاكدي من التاريخ!", "❌ تاريخ الميلاد بالمستقبل يا مزه، تاكد من التاريخ!")
+        years = today.year - bdate.year - ((today.month, today.day) < (bdate.month, bdate.day))
+        months = (today.month - bdate.month - (today.day < bdate.day)) % 12
+        days = (today - bdate.replace(year=today.year if (today.month, today.day) >= (bdate.month, bdate.day) else today.year - 1)).days % 30
+        return {"السنوات": years, "الأشهر": months, "الأيام": days, "الوصف": f"🎂 عمرك {years} سنة و {months} شهر و {days} يوم"}
+    except ValueError:
+        return _msg(gender, "❌ صيغة التاريخ خطا يا مزه، اكتبيها كذا: 2000-05-15", "❌ صيغة التاريخ خطا يا مزه، اكتبها كذا: 2000-05-15")
+
+def check_password(password, gender="f"):
+    """14. فحص قوة كلمة المرور وإعطاء نصائح لتقويتها"""
+    pwd = str(password)
+    tips =
+    if len(pwd) < 8:
+        tips.append("اجعليها 8 خانات على الأقل" if gender == "f" else "اجعلها 8 خانات على الأقل")
+    if not re.search(r'[A-Z]', pwd):
+        tips.append("أضيفي حرفاً كبيراً (A-Z)" if gender == "f" else "أضف حرفاً كبيراً (A-Z)")
+    if not re.search(r'[0-9]', pwd):
+        tips.append("أضيفي أرقاماً (0-9)" if gender == "f" else "أضف أرقاماً (0-9)")
+    if not re.search(r'[!@#$%^&*(),.?":{}|<>]', pwd):
+        tips.append("أضيفي رمزاً خاصاً مثل (@#$)" if gender == "f" else "أضف رمزاً خاصاً مثل (@#$)")
+    
+    if not tips:
+        return "🛡️ كلمة مرور قوية وممتازة يا مزه!"
+    return f"⚠️ كلمة المرور ضعيفة يا مزه، نصيحتي: {' + '.join(tips)}"
+
+def saudi_holidays():
+    """15. عرض المناسبات الوطنية الرسمية في المملكة العربية السعودية"""
+    return {
+        "يوم التأسيس السعودي": "22 فبراير من كل عام",
+        "يوم العلم السعودي": "11 مارس من كل عام",
+        "اليوم الوطني السعودي": "23 سبتمبر من كل عام"
+    }
